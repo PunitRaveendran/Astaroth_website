@@ -1,0 +1,346 @@
+import React, { useEffect, useState, useRef } from 'react';
+import Navbar from './components/Navbar';
+import RobotCanvas from './components/RobotCanvas';
+import HeroOverlay from './components/HeroOverlay';
+import Sponsors from './components/Sponsors';
+import Team from './components/Team';
+import Contact from './components/Contact';
+
+export default function App() {
+  const [activeSection, setActiveSection] = useState('hero');
+  const [rpmRatio, setRpmRatio] = useState(0);
+
+  const theatreRef = useRef(null);
+  const activeSecRef = useRef('hero');
+  const rpmRatioRef = useRef(0);
+
+  // Mutable state reference for Three.js (Zero React re-render bottleneck!)
+  const robotStateRef = useRef({
+    targetExplode: 0,
+    targetCamX: 0,
+    weaponRPM: 0
+  });
+
+  useEffect(() => {
+    let rawScrollY = window.scrollY;
+    let targetP = 0;
+    let currentP = 0;
+    let isFirstScroll = true;
+    let isRunning = false;
+    let animationId = null;
+
+    // Cache DOM nodes once to avoid layout thrashing and DOM query churn
+    const elBar = document.getElementById('bar');
+    const elHeroOverlay = document.getElementById('heroOverlay');
+    const elHeroDisc = document.getElementById('heroDisc');
+    const elHeroCue = document.getElementById('heroCue');
+    const elHeroRpmVal = document.getElementById('heroRpmVal');
+    const elHeroRpmFill = document.getElementById('heroRpmFill');
+    const elTelemetryMode = document.getElementById('telemetryMode');
+    const elTipSpeedVal = document.getElementById('tipSpeedVal');
+    const elKeVal = document.getElementById('keVal');
+    const elRobotHud = document.getElementById('robotHud');
+    const elStageBadge = document.getElementById('stageStateBadge');
+    const elExplodeBar = document.getElementById('explodeBar');
+    const elCardSpecs = document.getElementById('cardSpecs');
+    const elCardCrew = document.getElementById('cardCrew');
+    const elSponsors = document.getElementById('sponsors');
+    const elTeam = document.getElementById('team');
+    const elContact = document.getElementById('contact');
+
+    // Throttled active section check (at most 10 times per second, only on scroll)
+    let lastSecCheckTime = 0;
+    function updateActiveSection(p) {
+      const now = performance.now();
+      if (now - lastSecCheckTime < 100) return;
+      lastSecCheckTime = now;
+
+      const vh = window.innerHeight;
+      let nextSec = 'hero';
+      if (elContact && elContact.getBoundingClientRect().top <= vh * 0.45) {
+        nextSec = 'contact';
+      } else if (elTeam && elTeam.getBoundingClientRect().top <= vh * 0.45) {
+        nextSec = 'team';
+      } else if (elSponsors && elSponsors.getBoundingClientRect().top <= vh * 0.45) {
+        nextSec = 'sponsors';
+      } else if (p > 0.16) {
+        nextSec = 'robot';
+      }
+
+      if (nextSec !== activeSecRef.current) {
+        activeSecRef.current = nextSec;
+        setActiveSection(nextSec);
+      }
+    }
+
+    function updateFrame(progress) {
+      const isDesktop = window.innerWidth >= 992;
+
+      // 1. Top progress bar
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (elBar && docHeight > 0) {
+        const pct = Math.max(0, Math.min(1, rawScrollY / docHeight));
+        elBar.style.transform = `scaleX(${pct})`;
+      }
+
+      // 2. Weapon RPM (0 to 10,000 RPM)
+      const ratio = Math.min(1.0, progress / 0.16);
+      const rpm = Math.round(ratio * 10000);
+      robotStateRef.current.weaponRPM = rpm;
+
+      // Only update HeroRings state when ratio changes by 5% to prevent keyframe re-parsing
+      const steppedRatio = Math.round(ratio * 20) / 20;
+      if (steppedRatio !== rpmRatioRef.current) {
+        rpmRatioRef.current = steppedRatio;
+        setRpmRatio(steppedRatio);
+      }
+
+      if (elHeroRpmVal) elHeroRpmVal.textContent = rpm.toString().padStart(4, '0');
+      if (elHeroRpmFill) elHeroRpmFill.style.width = (ratio * 100).toFixed(1) + '%';
+      if (elTipSpeedVal) elTipSpeedVal.textContent = Math.round(ratio * 247);
+      if (elKeVal) elKeVal.textContent = (ratio * ratio * 6.6).toFixed(1);
+
+      if (elTelemetryMode) {
+        if (rpm === 0) {
+          elTelemetryMode.textContent = 'STANDBY';
+          elTelemetryMode.style.color = 'var(--gold)';
+        } else if (rpm < 10000) {
+          elTelemetryMode.textContent = 'SPINNING UP...';
+          elTelemetryMode.style.color = 'var(--flame)';
+        } else {
+          elTelemetryMode.textContent = 'WEAPON LOCKED // 10,000 RPM';
+          elTelemetryMode.style.color = 'var(--laser)';
+        }
+      }
+
+      // 3. Phase 0: Hero Fly-Through (0.00 to 0.18)
+      const heroThreshold = 0.18;
+      if (progress <= heroThreshold) {
+        const p = progress / (heroThreshold * 0.88);
+        const clampedP = Math.min(1.0, Math.max(0.0, p));
+        const scale = 1.0 + Math.pow(clampedP, 1.35) * 1.15;
+        const opacity = Math.max(0, 1.0 - Math.pow(clampedP, 1.4));
+
+        if (elHeroOverlay) {
+          elHeroOverlay.style.display = 'flex';
+          elHeroOverlay.style.visibility = 'visible';
+          elHeroOverlay.style.opacity = opacity.toFixed(3);
+          elHeroOverlay.style.pointerEvents = clampedP > 0.75 ? 'none' : 'auto';
+        }
+        if (elHeroDisc) {
+          elHeroDisc.style.transform = `scale(${scale.toFixed(3)})`;
+        }
+        if (elHeroCue) {
+          elHeroCue.style.opacity = Math.max(0, 1.0 - clampedP * 3.5).toFixed(2);
+        }
+
+        if (elRobotHud) elRobotHud.style.opacity = '0';
+        if (elCardSpecs) elCardSpecs.classList.remove('active');
+        if (elCardCrew) elCardCrew.classList.remove('active');
+
+        robotStateRef.current.targetExplode = 0.0;
+        robotStateRef.current.targetCamX = 0;
+      } else {
+        // Past Hero: Hide overlay completely to save GPU & CPU cycles
+        if (elHeroOverlay) {
+          elHeroOverlay.style.display = 'none';
+          elHeroOverlay.style.visibility = 'hidden';
+          elHeroOverlay.style.opacity = '0';
+          elHeroOverlay.style.pointerEvents = 'none';
+        }
+        if (elRobotHud) elRobotHud.style.opacity = '1';
+
+        // Extended Narrative Scroll Pacing:
+        // Stage 1 (0.18 - 0.48): Generous 30% scroll window to process assembled machine!
+        // Stage 2 (0.48 - 0.82): CAD exploded view (0.48-0.58 separate, 0.58-0.74 plateau, 0.74-0.82 reassemble)
+        // Stage 3 (0.82 - 1.00): Fully reassembled with Engineering Crew card
+        if (progress < 0.48) {
+          // STAGE 1: ASSEMBLED (SPECS)
+          if (elCardSpecs) elCardSpecs.classList.add('active');
+          if (elCardCrew) elCardCrew.classList.remove('active');
+          robotStateRef.current.targetExplode = 0.0;
+          robotStateRef.current.targetCamX = isDesktop ? -235 : 0;
+          if (elStageBadge) elStageBadge.innerHTML = '<span class="live-dot"></span> STAGE 1/3: ASSEMBLED (SPECS)';
+          if (elExplodeBar) elExplodeBar.style.width = '0%';
+        } else if (progress >= 0.48 && progress < 0.82) {
+          // STAGE 2: SUSTAINED EXPLODED VIEW
+          if (elCardSpecs) elCardSpecs.classList.remove('active');
+          if (elCardCrew) elCardCrew.classList.remove('active');
+          robotStateRef.current.targetCamX = 0;
+          if (elStageBadge) elStageBadge.innerHTML = '<span class="live-dot"></span> STAGE 2/3: EXPLODED CAD VIEW';
+
+          let exp = 0;
+          if (progress < 0.58) {
+            exp = (progress - 0.48) / (0.58 - 0.48);
+          } else if (progress >= 0.58 && progress <= 0.74) {
+            exp = 1.0;
+          } else {
+            exp = 1.0 - (progress - 0.74) / (0.82 - 0.74);
+          }
+          exp = Math.max(0, Math.min(1.0, exp));
+          robotStateRef.current.targetExplode = exp;
+          if (elExplodeBar) elExplodeBar.style.width = Math.round(exp * 100) + '%';
+        } else {
+          // STAGE 3: REASSEMBLED (CREW)
+          if (elCardSpecs) elCardSpecs.classList.remove('active');
+          if (elCardCrew) elCardCrew.classList.add('active');
+          robotStateRef.current.targetExplode = 0.0;
+          robotStateRef.current.targetCamX = isDesktop ? -235 : 0;
+          if (elStageBadge) elStageBadge.innerHTML = '<span class="live-dot"></span> STAGE 3/3: REASSEMBLED (CREW)';
+          if (elExplodeBar) elExplodeBar.style.width = '0%';
+        }
+      }
+
+      updateActiveSection(progress);
+    }
+
+    let lastScrollY = window.scrollY;
+
+    function renderLoop() {
+      // Smoothly interpolate current progress towards target
+      currentP += (targetP - currentP) * 0.16;
+      updateFrame(currentP);
+
+      // IDLE SLEEP: Stop loop completely when settled (Saves 100% CPU when not scrolling!)
+      const delta = Math.abs(targetP - currentP);
+      if (delta < 0.0001 && Math.abs(rawScrollY - lastScrollY) < 0.5) {
+        currentP = targetP;
+        updateFrame(currentP);
+        isRunning = false;
+        animationId = null;
+        return;
+      }
+
+      lastScrollY = rawScrollY;
+      animationId = requestAnimationFrame(renderLoop);
+    }
+
+    function wakeLoop() {
+      if (!isRunning) {
+        isRunning = true;
+        animationId = requestAnimationFrame(renderLoop);
+      }
+    }
+
+    const onScroll = () => {
+      rawScrollY = window.scrollY;
+      const vh = window.innerHeight;
+      const theatre = theatreRef.current;
+      if (!theatre) return;
+      const trackRect = theatre.getBoundingClientRect();
+      const trackTop = rawScrollY + trackRect.top;
+      const trackHeight = theatre.offsetHeight - vh;
+      targetP = Math.max(0, Math.min(1.0, (rawScrollY - trackTop) / Math.max(1, trackHeight)));
+      if (isFirstScroll) {
+        currentP = targetP;
+        isFirstScroll = false;
+      }
+      wakeLoop();
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    onScroll();
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (animationId) cancelAnimationFrame(animationId);
+    };
+  }, []);
+
+  return (
+    <>
+      {/* Top Bar & Fixed Navigation */}
+      <Navbar activeSection={activeSection} />
+
+      {/* Pinned 3D Robot Machine Theatre */}
+      <section className="robot-theatre-track" id="robotTheatre" ref={theatreRef}>
+        <div id="hero" style={{ position: 'absolute', top: 0, height: '1px', width: '1px', pointerEvents: 'none' }} />
+        <div id="robot" style={{ position: 'absolute', top: '100vh', height: '1px', width: '1px', pointerEvents: 'none' }} />
+
+        <div className="robot-theatre-sticky" id="theatreSticky">
+          {/* 3D Robot Viewer Stage (Powered by React Three Fiber) */}
+          <div className="robot-canvas-col" id="robotViewer">
+            <RobotCanvas stateRef={robotStateRef} />
+
+            {/* In-Viewer Tactical HUD */}
+            <div className="robot-hud-overlay" id="robotHud" style={{ opacity: 0 }}>
+              <div className="hud-top-bar">
+                <div className="telemetry-tag"><span className="live-dot" /> THE LAWNMOWER</div>
+              </div>
+
+              <div className="hud-bottom-bar">
+                <div className="stage-state-tag" id="stageStateBadge">
+                  <span className="live-dot" /> STAGE 1/3: ASSEMBLED (SPECS)
+                </div>
+                <div className="hud-explode-progress">
+                  <div className="hud-explode-bar" id="explodeBar" style={{ width: '0%' }} />
+                </div>
+                <span className="hud-drag-hint">&bull; DRAG TO ORBIT</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Narrative Story Cards */}
+          <div className="robot-narrative-col">
+            {/* STAGE 1: ASSEMBLED & COMBAT SPECS */}
+            <article className="theatre-card active" id="cardSpecs">
+              <div className="card-meta">
+                <span className="story-badge"><span className="live-dot" /> STAGE 01 // TACTICAL TELEMETRY</span>
+                <span className="stage-num">01 / 03</span>
+              </div>
+              <h2 className="card-title">COMBAT SPECIFICATIONS</h2>
+              <p className="card-desc">
+                Monolithic CNC billet aluminum unibody engineered for extreme impact tolerance, high-speed maneuverability, and structural rigidity.
+              </p>
+              <dl className="specs-grid-compact">
+                <div className="spec-row"><dt>COMBAT CLASS</dt><dd>Featherweight (15 kg / 33 lbs)</dd></div>
+                <div className="spec-row"><dt>CHASSIS ARCHITECTURE</dt><dd>CNC Billet 6061-T6 Unibody Tub</dd></div>
+                <div className="spec-row"><dt>TOP SPEED / DRIVE</dt><dd>24 km/h Dual Brushless 2WD</dd></div>
+              </dl>
+              <div className="card-footer">
+                <span className="scroll-indicator-pill">&darr; KEEP SCROLLING FOR EXPLODED CAD VIEW</span>
+              </div>
+            </article>
+
+            {/* STAGE 3: REASSEMBLED & ENGINEERING CREW */}
+            <article className="theatre-card" id="cardCrew">
+              <div className="card-meta">
+                <span className="story-badge"><span className="live-dot" /> STAGE 03 // THE ENGINEERING CREW</span>
+                <span className="stage-num">03 / 03</span>
+              </div>
+              <h2 className="card-title">ENGINEERING TEAM</h2>
+              <p className="card-desc" style={{ fontSize: '0.92rem', lineHeight: 1.6, color: 'var(--bone)' }}>
+                We are a powerhouse crew of <b>10 inter-departmental 3rd-year engineering students from Amrita Vishwa Vidyapeetham</b> united by our passion for heavy-impact combat robotics.
+              </p>
+              <p className="card-desc" style={{ fontSize: '0.86rem', lineHeight: 1.55, color: 'var(--bone-dim)', marginTop: '8px' }}>
+                Forged by an obsession for competitive robotics, we engineer, machine, and battle-test our featherweight machines to dominate the National Robowars arenas.
+              </p>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', margin: '14px 0' }}>
+                <span style={{ fontFamily: 'var(--f-mono)', fontSize: '0.68rem', padding: '4px 8px', borderRadius: '3px', background: 'rgba(239,51,64,0.12)', border: '1px solid rgba(239,51,64,0.3)', color: 'var(--laser)' }}>Amrita Vishwa Vidyapeetham</span>
+                <span style={{ fontFamily: 'var(--f-mono)', fontSize: '0.68rem', padding: '4px 8px', borderRadius: '3px', background: 'rgba(255,183,50,0.12)', border: '1px solid rgba(255,183,50,0.3)', color: 'var(--title-gold)' }}>10 Multi-Discipline Engineers</span>
+                <span style={{ fontFamily: 'var(--f-mono)', fontSize: '0.68rem', padding: '4px 8px', borderRadius: '3px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)', color: 'var(--bone)' }}>3rd Year Undergrads</span>
+              </div>
+              <div className="card-footer">
+                <a href="#sponsors" className="btn" style={{ padding: '8px 16px', fontSize: '0.75rem' }}>CONTINUE TO SPONSORS &darr;</a>
+              </div>
+            </article>
+          </div>
+
+          {/* HERO PORTAL OVERLAY: Scales 1.0 -> 2.15x and dissolves on scroll! */}
+          <HeroOverlay rpmRatio={rpmRatio} />
+        </div>
+      </section>
+
+      {/* Official Sponsors with expanding rectangle accordion */}
+      <Sponsors />
+
+      {/* Engineering Roster & Battle Squad */}
+      <Team />
+
+      {/* Direct Transmission / Contact Form */}
+      <Contact />
+    </>
+  );
+}
