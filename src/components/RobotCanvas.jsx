@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useState } from 'react';
+import React, { useRef, useMemo, useState, useEffect } from 'react';
 import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { STLLoader } from 'three-stdlib';
@@ -19,6 +19,8 @@ function sanitizeSTLGeometry(geo) {
     geo.deleteAttribute('color');
   }
   geo.computeVertexNormals();
+  geo.computeBoundingSphere();
+  geo.computeBoundingBox();
   return geo;
 }
 
@@ -228,6 +230,28 @@ function LawnmowerBot({ stateRef, rotRef }) {
 }
 
 
+
+function ContextRestorer() {
+  const { gl } = useThree();
+  useEffect(() => {
+    const handleContextLost = (e) => {
+      e.preventDefault();
+      console.warn('WebGL context lost, preventing default to enable restoration');
+    };
+    const handleContextRestored = () => {
+      console.info('WebGL context restored');
+    };
+    const canvas = gl.domElement;
+    canvas.addEventListener('webglcontextlost', handleContextLost, false);
+    canvas.addEventListener('webglcontextrestored', handleContextRestored, false);
+    return () => {
+      canvas.removeEventListener('webglcontextlost', handleContextLost);
+      canvas.removeEventListener('webglcontextrestored', handleContextRestored);
+    };
+  }, [gl]);
+  return null;
+}
+
 function ResponsiveCamera() {
   const { camera, size } = useThree();
 
@@ -359,7 +383,8 @@ function RobotCanvas({ stateRef }) {
         height: '100%',
         pointerEvents: 'auto',
         cursor: isDraggingState ? 'grabbing' : 'grab',
-        touchAction: 'pan-y'
+        touchAction: 'pan-y',
+        background: 'radial-gradient(circle at 50% 50%, #140507 0%, #08090d 80%)'
       }}
     >
       <Canvas
