@@ -113,7 +113,7 @@ export default function Contact() {
                 type="text"
                 name="name"
                 required
-                placeholder="e.g. Apex Industries, Machining Partner, or Arena Host"
+                placeholder="Your Name or Organization"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
@@ -125,7 +125,7 @@ export default function Contact() {
                 type="email"
                 name="email"
                 required
-                placeholder="name@company.com"
+                placeholder="your.email@domain.com"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
@@ -137,7 +137,7 @@ export default function Contact() {
                 name="message"
                 rows={6}
                 required
-                placeholder="Tell us how you would like to collaborate, sponsor the machine, or invite us to your event..."
+                placeholder="Write your message or inquiry here..."
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
               />

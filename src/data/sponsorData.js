@@ -6,9 +6,9 @@ export const SPONSOR_TIERS = [
     badge: 'TITLE SPONSOR',
     sponsors: [
       {
-        name: 'Apex Kinetic Heavy Industries',
-        industry: 'Aerospace Metallurgy & Heavy Machining',
-        desc: 'Global leaders in impact-grade aerospace alloy forging and precision 5-axis CNC manufacturing.',
+        name: 'Title Partner Slot',
+        industry: 'Open for Title Sponsorship',
+        desc: 'Headline branding on Astaroth\'s chassis, team uniforms, pit displays, competition streams, and official press releases.',
         contrib: 'Primary title funding, unibody billet chassis machining, and high-spec alloy supply.',
         deliverable: 'CHASSIS BILLET LOGO PLACEMENT • PIT BANNER • VIP ACCESS'
       }
@@ -21,14 +21,14 @@ export const SPONSOR_TIERS = [
     badge: 'GOLD PARTNERS',
     sponsors: [
       {
-        name: 'Vortex Drive Technologies',
+        name: 'Gold Partner Slot 01',
         industry: 'Brushless Powertrains & ESCs',
         desc: 'High-output brushless motors, precision field-oriented control ESCs, and thermal dissipators.',
         contrib: 'High-torque 10,000 RPM brushless weapon motors and dual high-current motor controllers.',
         deliverable: 'WEAPON BAY LOGO • ARENA BANNER • FEATURED REEL'
       },
       {
-        name: 'Titanium Dynamics Global',
+        name: 'Gold Partner Slot 02',
         industry: 'Ballistic Armor & Metallurgy',
         desc: 'Certified suppliers of impact-grade Hardox wear plate and Grade 5 aerospace titanium.',
         contrib: 'Precision waterjet profiling of top armor deck and shock-absorbing bumper plates.',
@@ -43,14 +43,14 @@ export const SPONSOR_TIERS = [
     badge: 'SILVER PARTNERS',
     sponsors: [
       {
-        name: 'PulseCell Lithium Systems',
+        name: 'Silver Partner Slot 01',
         industry: 'High-Drain Power Storage',
         desc: 'Custom engineered 75C+ high-drain lithium power systems designed for severe arena shock loads.',
         contrib: 'Competition-grade high-discharge battery vault packs and rapid cell balancing telemetry.',
         deliverable: 'BATTERY VAULT BRANDING • RECRUITMENT ACCESS'
       },
       {
-        name: 'KevlarGrip Transmissions',
+        name: 'Silver Partner Slot 02',
         industry: 'Industrial Motion & Belts',
         desc: 'Heavy-duty timing pulleys, HTD belts, and vulcanized high-traction polyurethane wheels.',
         contrib: 'Weapon synchronization belts, custom timing pulleys, and arena traction drive hubs.',
@@ -65,15 +65,15 @@ export const SPONSOR_TIERS = [
     badge: 'BRONZE & ECOSYSTEM',
     sponsors: [
       {
-        name: 'Additive Forge 3D',
+        name: 'Bronze Partner Slot',
         industry: 'Rapid Prototyping & Additive Tech',
         desc: 'Industrial carbon-fiber composite 3D printing and iterative design prototyping.',
         contrib: 'Internal electronics isolation mounts, wire harness conduit, and rapid test mockups.',
         deliverable: 'INTERNAL MOUNT BRANDING'
       },
       {
-        name: 'Amrita Robotics Community',
-        industry: 'Collegiate Engineering & Innovation',
+        name: 'Community Partner Slot',
+        industry: 'Open for Community & Collegiate Partners',
         desc: 'Student-driven robotics society fostering combat robotics culture and technical innovation.',
         contrib: 'Testing facility support, arena trial infrastructure, and collegiate ecosystem backing.',
         deliverable: 'COMMUNITY RECOGNITION'

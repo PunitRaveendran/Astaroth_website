@@ -8,11 +8,9 @@ import Contact from './components/Contact';
 
 export default function App() {
   const [activeSection, setActiveSection] = useState('hero');
-  const [rpmRatio, setRpmRatio] = useState(0);
 
   const theatreRef = useRef(null);
   const activeSecRef = useRef('hero');
-  const rpmRatioRef = useRef(0);
 
   // Mutable state reference for Three.js (Zero React re-render bottleneck!)
   const robotStateRef = useRef({
@@ -48,20 +46,51 @@ export default function App() {
     const elTeam = document.getElementById('team');
     const elContact = document.getElementById('contact');
 
-    // Throttled active section check (at most 10 times per second, only on scroll)
+    // Layout Cache: Pre-calculated document offsets to prevent getBoundingClientRect() during scroll
+    let cachedTheatreTop = 0;
+    let cachedTheatreHeight = 1;
+    let cachedSponsorsTop = 999999;
+    let cachedTeamTop = 999999;
+    let cachedContactTop = 999999;
+
+    function measureLayout() {
+      const vh = window.innerHeight;
+      const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+      const theatre = theatreRef.current;
+      if (theatre) {
+        const rect = theatre.getBoundingClientRect();
+        cachedTheatreTop = scrollY + rect.top;
+        cachedTheatreHeight = Math.max(1, theatre.offsetHeight - vh);
+      }
+      if (elSponsors) {
+        cachedSponsorsTop = scrollY + elSponsors.getBoundingClientRect().top;
+      }
+      if (elTeam) {
+        cachedTeamTop = scrollY + elTeam.getBoundingClientRect().top;
+      }
+      if (elContact) {
+        cachedContactTop = scrollY + elContact.getBoundingClientRect().top;
+      }
+    }
+
+    // Measure initially and on resize / orientation change
+    measureLayout();
+    const measureTimer = setTimeout(measureLayout, 150);
+
+    // Throttled active section check using cached offsets (Zero layout reflow!)
     let lastSecCheckTime = 0;
     function updateActiveSection(p) {
       const now = performance.now();
-      if (now - lastSecCheckTime < 100) return;
+      if (now - lastSecCheckTime < 120) return;
       lastSecCheckTime = now;
 
-      const vh = window.innerHeight;
+      const triggerLine = rawScrollY + window.innerHeight * 0.45;
       let nextSec = 'hero';
-      if (elContact && elContact.getBoundingClientRect().top <= vh * 0.45) {
+      if (triggerLine >= cachedContactTop) {
         nextSec = 'contact';
-      } else if (elTeam && elTeam.getBoundingClientRect().top <= vh * 0.45) {
+      } else if (triggerLine >= cachedTeamTop) {
         nextSec = 'team';
-      } else if (elSponsors && elSponsors.getBoundingClientRect().top <= vh * 0.45) {
+      } else if (triggerLine >= cachedSponsorsTop) {
         nextSec = 'sponsors';
       } else if (p > 0.16) {
         nextSec = 'robot';
@@ -83,17 +112,10 @@ export default function App() {
         elBar.style.transform = `scaleX(${pct})`;
       }
 
-      // 2. Weapon RPM (0 to 10,000 RPM)
+      // 2. Weapon RPM (0 to 10,000 RPM) directly to DOM and robotStateRef (Zero React re-render bottleneck!)
       const ratio = Math.min(1.0, progress / 0.16);
       const rpm = Math.round(ratio * 10000);
       robotStateRef.current.weaponRPM = rpm;
-
-      // Only update HeroRings state when ratio changes by 5% to prevent keyframe re-parsing
-      const steppedRatio = Math.round(ratio * 20) / 20;
-      if (steppedRatio !== rpmRatioRef.current) {
-        rpmRatioRef.current = steppedRatio;
-        setRpmRatio(steppedRatio);
-      }
 
       if (elHeroRpmVal) elHeroRpmVal.textContent = rpm.toString().padStart(4, '0');
       if (elHeroRpmFill) elHeroRpmFill.style.width = (ratio * 100).toFixed(1) + '%';
@@ -114,6 +136,9 @@ export default function App() {
       }
 
       // 3. Phase 0: Hero Fly-Through (Snappy on mobile, cinematic on desktop)
+      // PERFORMANCE CRITICAL: NEVER toggle display='none' vs 'flex'!
+      // Toggling display forces the browser to destroy and rebuild layout boxes, causing scroll lag & blank screen!
+      // We toggle visibility and opacity, which are 100% GPU-composited with zero layout thrash.
       const heroThreshold = isDesktop ? 0.18 : 0.09;
       if (progress <= heroThreshold) {
         const p = progress / (heroThreshold * 0.85);
@@ -122,7 +147,6 @@ export default function App() {
         const opacity = Math.max(0, 1.0 - Math.pow(clampedP, 1.3));
 
         if (elHeroOverlay) {
-          elHeroOverlay.style.display = 'flex';
           elHeroOverlay.style.visibility = 'visible';
           elHeroOverlay.style.opacity = opacity.toFixed(3);
           elHeroOverlay.style.pointerEvents = clampedP > 0.65 ? 'none' : 'auto';
@@ -141,9 +165,8 @@ export default function App() {
         robotStateRef.current.targetExplode = 0.0;
         robotStateRef.current.targetCamX = 0;
       } else {
-        // Past Hero: Hide overlay completely to reveal 3D machine
+        // Past Hero: Hide overlay smoothly via visibility & opacity (keeps layout cached in GPU)
         if (elHeroOverlay) {
-          elHeroOverlay.style.display = 'none';
           elHeroOverlay.style.visibility = 'hidden';
           elHeroOverlay.style.opacity = '0';
           elHeroOverlay.style.pointerEvents = 'none';
@@ -199,13 +222,13 @@ export default function App() {
     let lastScrollY = window.scrollY;
 
     function renderLoop() {
-      // Smoothly interpolate current progress towards target
-      currentP += (targetP - currentP) * 0.16;
+      // Smoothly interpolate current progress towards target (0.22 factor provides instant touch responsiveness)
+      currentP += (targetP - currentP) * 0.22;
       updateFrame(currentP);
 
       // IDLE SLEEP: Stop loop completely when settled (Saves 100% CPU when not scrolling!)
       const delta = Math.abs(targetP - currentP);
-      if (delta < 0.0001 && Math.abs(rawScrollY - lastScrollY) < 0.5) {
+      if (delta < 0.0002 && Math.abs(rawScrollY - lastScrollY) < 0.5) {
         currentP = targetP;
         updateFrame(currentP);
         isRunning = false;
@@ -224,15 +247,10 @@ export default function App() {
       }
     }
 
+    // High performance onScroll: ZERO DOM queries, ZERO layout reflows!
     const onScroll = () => {
       rawScrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
-      const vh = window.innerHeight;
-      const theatre = theatreRef.current;
-      if (!theatre) return;
-      const trackRect = theatre.getBoundingClientRect();
-      const trackTop = rawScrollY + trackRect.top;
-      const trackHeight = theatre.offsetHeight - vh;
-      targetP = Math.max(0, Math.min(1.0, (rawScrollY - trackTop) / Math.max(1, trackHeight)));
+      targetP = Math.max(0, Math.min(1.0, (rawScrollY - cachedTheatreTop) / cachedTheatreHeight));
       if (isFirstScroll) {
         currentP = targetP;
         isFirstScroll = false;
@@ -240,13 +258,21 @@ export default function App() {
       wakeLoop();
     };
 
+    const handleResize = () => {
+      measureLayout();
+      onScroll();
+    };
+
     window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
     onScroll();
 
     return () => {
+      clearTimeout(measureTimer);
       window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
       if (animationId) cancelAnimationFrame(animationId);
     };
   }, []);
@@ -331,7 +357,7 @@ export default function App() {
           </div>
 
           {/* HERO PORTAL OVERLAY: Scales 1.0 -> 2.15x and dissolves on scroll! */}
-          <HeroOverlay rpmRatio={rpmRatio} />
+          <HeroOverlay />
         </div>
       </section>
 

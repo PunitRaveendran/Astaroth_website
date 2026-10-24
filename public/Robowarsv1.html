@@ -929,18 +929,133 @@ footer {
 }
 
 @media (max-width: 960px) {
+  .robot-theatre-track {
+    height: 520vh;
+  }
   .robot-theatre-sticky {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100vh;
+    height: 100dvh;
     grid-template-columns: 1fr;
-    grid-template-rows: 45vh 55vh;
+    grid-template-rows: none;
+    overflow: hidden;
+  }
+  .robot-canvas-col {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    touch-action: pan-y;
   }
   .robot-narrative-col {
-    padding: 0 20px 24px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: auto;
+    max-height: 38vh;
+    max-height: 38dvh;
+    padding: 8px 12px 14px;
+    z-index: 20;
+    grid-column: 1;
+    display: flex;
+    justify-content: center;
     align-items: flex-end;
+    pointer-events: none;
+    box-sizing: border-box;
   }
   .theatre-card {
-    max-height: 50vh;
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 12px 14px;
+    max-height: 35vh;
+    max-height: 35dvh;
     overflow-y: auto;
-    padding: 20px 16px;
+    -webkit-overflow-scrolling: touch;
+    transform: translateY(18px);
+    border-radius: 8px;
+    background: rgba(12, 14, 18, 0.95);
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  }
+  .theatre-card.active {
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .card-meta {
+    margin-bottom: 6px;
+  }
+  .story-badge {
+    font-size: 0.65rem;
+  }
+  .stage-num {
+    font-size: 0.65rem;
+  }
+  .card-title {
+    font-size: 1.25rem;
+    margin-bottom: 6px;
+  }
+  .card-desc {
+    font-size: 0.8rem;
+    line-height: 1.45;
+    margin-bottom: 10px;
+  }
+  .specs-grid-compact {
+    max-height: 160px;
+    gap: 5px;
+    margin-bottom: 10px;
+  }
+  .spec-row {
+    padding: 4px 8px;
+    font-size: 0.72rem;
+  }
+  .scroll-indicator-pill {
+    font-size: 0.62rem;
+    padding: 4px 8px;
+  }
+
+  /* HUD layout on mobile */
+  .robot-hud-overlay {
+    padding: 68px 14px 14px 14px;
+  }
+  .hud-top-bar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .telemetry-tag {
+    font-size: 0.68rem;
+    padding: 5px 10px;
+  }
+  .hud-bottom-bar {
+    position: absolute;
+    top: 68px;
+    right: 14px;
+    padding: 5px 10px;
+    gap: 8px;
+    font-size: 0.65rem;
+    border-radius: 4px;
+    background: rgba(14, 16, 22, 0.92);
+  }
+  .stage-state-tag {
+    font-size: 0.65rem;
+  }
+  .hud-explode-progress {
+    width: 55px;
+    height: 4px;
+  }
+  .hud-drag-hint {
+    display: none;
   }
 }
 
@@ -1371,13 +1486,56 @@ footer {
 @media (max-width: 900px) {
   .sgrid-duo {
     flex-direction: column;
+    gap: 16px;
   }
-  .sgrid-duo .sp-left .sp-inner,
-  .sgrid-duo .sp-right .sp-inner,
+  .sgrid-duo::before {
+    display: none;
+  }
+  .sgrid-duo .sp {
+    flex: none !important;
+    width: 100% !important;
+    min-height: auto !important;
+    opacity: 1 !important;
+    filter: none !important;
+  }
+  .sgrid-duo .sp.is-shrunk,
+  .sgrid-duo .sp.is-active {
+    flex: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+  }
+  .sgrid-duo .sp .sp-inner,
+  .sgrid-duo .sp.is-shrunk .sp-inner,
   .sgrid-single .sp .sp-inner {
     flex-direction: column;
     align-items: flex-start;
-    gap: 18px;
+    gap: 14px;
+    padding: 20px 16px !important;
+    justify-content: flex-start !important;
+  }
+  .sgrid-duo .sp .sp-brand,
+  .sgrid-duo .sp.is-shrunk .sp-brand {
+    gap: 14px !important;
+    justify-content: flex-start !important;
+    flex-direction: row !important;
+    text-align: left !important;
+  }
+  .sgrid-duo .sp .sp-brand-text,
+  .sgrid-duo .sp.is-shrunk .sp-brand-text {
+    max-width: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: left !important;
+    align-items: flex-start !important;
+  }
+  .sp-logo-box,
+  .sgrid-duo .sp.is-shrunk .sp-logo-box {
+    transform: none !important;
+    min-width: 48px;
+    width: 48px;
+    height: 48px;
   }
   .sp-right .sp-inner {
     text-align: left;
@@ -1394,23 +1552,23 @@ footer {
     align-items: flex-start;
     text-align: left;
   }
-  .sp-right .sp-drawer {
-    border-right: none;
-    border-left: 2px solid rgba(255, 183, 50, 0.4);
-    padding-right: 0;
-    padding-left: 18px;
-    margin-right: 0;
-    margin-left: 0;
-    text-align: left;
+  .sp-right .sp-drawer,
+  .sp-left .sp-drawer,
+  .sgrid-single .sp-drawer {
+    border-right: none !important;
+    border-left: 2px solid rgba(255, 183, 50, 0.4) !important;
+    padding-right: 0 !important;
+    padding-left: 14px !important;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+    text-align: left !important;
+    max-width: 100% !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
   }
   .sp-right .sp-contrib {
     border-right: none;
     border-left: 3px solid var(--laser);
-  }
-  .sp-left .sp-drawer, .sp-right .sp-drawer {
-    max-width: 100% !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
   }
 }
 
@@ -1503,14 +1661,30 @@ footer {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 12px;
+  padding: 8px 14px;
   border-radius: 999px;
-  background: #0077b5;
-  color: #fff;
-  font: 700 0.68rem var(--f-mono);
+  background: rgba(14, 16, 22, 0.92);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  font: 700 0.70rem var(--f-mono);
   letter-spacing: 0.08em;
-  box-shadow: 0 4px 14px rgba(0, 119, 181, 0.6);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.8);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.member-li-pill:hover,
+.member-card:hover .member-li-pill {
+  background: rgba(24, 7, 10, 0.95);
+  color: #ffffff;
+  border-color: var(--laser);
+  box-shadow: 0 0 16px rgba(239, 51, 64, 0.5);
+  transform: scale(1.04);
+}
+.member-li-pill svg {
+  color: #ffffff;
+}
+
+.photo-li-tag {
+  display: none !important;
 }
 .member-li-pill:hover {
   transform: scale(1.06);
@@ -1774,6 +1948,162 @@ footer img {
   height: 24px;
   width: auto;
 }
+
+@media (max-width: 768px) {
+  .hero-portal-overlay {
+    padding-top: 48px;
+  }
+  .disc {
+    width: min(90vw, 360px);
+    padding: 10px 8px;
+    gap: 6px;
+  }
+  .hero-content {
+    gap: 6px;
+  }
+  .hero-team-tag {
+    font-size: 0.68rem;
+    padding: 4px 12px;
+    letter-spacing: 0.16em;
+  }
+  .hero-logo-img {
+    max-width: min(74%, 220px);
+    max-height: 80px;
+  }
+  .hero-sub {
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+  }
+  .hero-weapon-telemetry {
+    width: min(92%, 280px);
+    padding: 6px 12px;
+    gap: 4px;
+  }
+  .telemetry-row {
+    font-size: 0.62rem;
+  }
+  .telemetry-main {
+    margin: 0;
+  }
+  .telemetry-rpm-val {
+    font-size: 1.25rem;
+  }
+  .telemetry-rpm-unit {
+    font-size: 0.72rem;
+  }
+  .telemetry-substats {
+    font-size: 0.58rem;
+  }
+  .cue {
+    bottom: 14px;
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+  }
+  .cue .line {
+    height: 18px;
+  }
+  .arena-floor {
+    height: 180px;
+    bottom: 2%;
+  }
+
+  .sec {
+    padding-block: clamp(48px, 8vh, 80px);
+  }
+  .wrap {
+    padding-inline: 16px;
+  }
+  .sec-head {
+    margin-bottom: 28px;
+    gap: 14px;
+  }
+  .sec-head .lead {
+    font-size: 0.95rem;
+  }
+  .contact-head .h {
+    font-size: 1.85rem;
+  }
+  .cgrid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    margin-top: 24px;
+  }
+  .cinfo-lead {
+    font-size: 1.05rem;
+    line-height: 1.55;
+  }
+  .cinfo-mail {
+    font-size: 1.05rem;
+    word-break: break-all;
+  }
+  .cform {
+    padding: 20px 16px;
+    gap: 16px;
+  }
+  .cform label {
+    font-size: 0.78rem;
+  }
+  .cform input {
+    min-height: 48px;
+    padding: 10px 14px;
+    font-size: 16px;
+  }
+  .cform textarea {
+    min-height: 130px;
+    padding: 10px 14px;
+    font-size: 16px;
+  }
+  .btn-inquiry {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px;
+    font-size: 0.88rem;
+  }
+  footer {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+    margin-top: 40px;
+  }
+  .footer-brand {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 540px) {
+  .team-row-h {
+    font-size: 0.76rem;
+    letter-spacing: 0.18em;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .team-linkedin-hint {
+    font-size: 0.65rem;
+    padding: 4px 10px;
+    letter-spacing: 0.08em;
+  }
+  .members-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .member-card {
+    width: 100%;
+  }
+  .members-grid .member-card:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    justify-self: center;
+    max-width: 155px;
+    margin-inline: auto;
+  }
+  .member-name-large {
+    font-size: 0.92rem;
+  }
+  .member-role-title {
+    font-size: 0.7rem;
+  }
+}
+
 </style>
 </head>
 
@@ -2013,11 +2343,11 @@ footer img {
 
         <label>
           Your Name / Company *
-          <input type="text" name="name" required placeholder="e.g. Alex Vance / Titan Precision">
+          <input type="text" name="name" required placeholder="Your Name or Organization">
         </label>
         <label>
           Your Email *
-          <input type="email" name="email" required placeholder="alex@company.com">
+          <input type="email" name="email" required placeholder="your.email@domain.com">
         </label>
         <label>
           Message / Sponsorship Details *
@@ -2141,7 +2471,7 @@ const CFG = {
     ],
     electrical:[
       {name:'Nishaanth S.', role:'Electrical Head', photo:'./team/nishaanth.jpg', linkedin:'https://www.linkedin.com/in/nishaanth-sundararajan-a20827334/'},
-      {name:'Punit Raveendran', role:'Electrical / Media Team', photo:'./team/punit.jpg', linkedin:'https://www.linkedin.com/in/punit-raveendran-805407321/'},
+      {name:'Punit Raveendran', role:'Electrical / Webmaster', photo:'./team/punit.jpg', linkedin:'https://www.linkedin.com/in/punit-raveendran-805407321/'},
       {name:'Rishabh K.', role:'Electrical Member', photo:'./team/rishabh.jpg', linkedin:'https://www.linkedin.com/in/rishabh-k-490009356/'},
       {name:'Gauri Roy', role:'Electrical Member', photo:'./team/gauri.jpg', linkedin:'https://www.linkedin.com/in/gauri-roy-4b212b42b/'},
       {name:'Harini Karthikeyan', role:'Electrical Member', photo:'./team/harini.jpg', linkedin:'https://www.linkedin.com/in/harini-karthikeyan-b53b76206/'}
@@ -2644,7 +2974,9 @@ function initLawnmower3D() {
     lastX = e.clientX;
     lastY = e.clientY;
     targetRotY += dx * 0.008;
-    targetRotX = Math.max(-0.55, Math.min(0.65, targetRotX + dy * 0.008));
+    if (e.pointerType !== 'touch') {
+      targetRotX = Math.max(-0.55, Math.min(0.65, targetRotX + dy * 0.008));
+    }
   });
 
   // Camera & Canvas Resizing
@@ -2653,10 +2985,17 @@ function initLawnmower3D() {
     const w = container.clientWidth, h = container.clientHeight;
     if (!w || !h) return;
     camera.aspect = w / h;
-    const isDesktop = w >= 992;
-    camera.position.set(0, 240, 1080);
-    camera.lookAt(0, 10, 0);
+    if (camera.aspect < 1.0) {
+      const targetZ = Math.min(1680, Math.max(1200, 560 / (0.64984 * Math.max(0.35, camera.aspect))));
+      camera.position.set(0, 320, targetZ);
+      camera.lookAt(0, 50, 0);
+    } else {
+      camera.position.set(0, 240, 1080);
+      camera.lookAt(0, 10, 0);
+    }
     camera.updateProjectionMatrix();
+    renderer.toneMapping = T.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 0.95;
     renderer.setSize(w, h);
   };
   window.addEventListener('resize', resize);
@@ -2688,8 +3027,14 @@ function initLawnmower3D() {
     currentCamX += (targetCamX - currentCamX) * 0.08;
     bot.position.x = currentCamX;
     if (typeof floorGroup !== 'undefined') floorGroup.position.x = currentCamX;
-    camera.position.set(0, 240, 1080);
-    camera.lookAt(0, 10, 0);
+    if (camera.aspect < 1.0) {
+      const targetZ = Math.min(1450, Math.max(1150, 460 / (0.62 * Math.max(0.35, camera.aspect))));
+      camera.position.set(0, 320, targetZ);
+      camera.lookAt(0, -170, 0);
+    } else {
+      camera.position.set(0, 240, 1080);
+      camera.lookAt(0, 10, 0);
+    }
 
     // Explode Separation Interpolation
     currentExplode += (targetExplode - currentExplode) * 0.12;
@@ -2734,14 +3079,32 @@ function initScrollEngine() {
   let targetP = 0, currentP = 0;
   let isFirstScroll = true;
 
-  function onScroll() {
-    rawScrollY = window.scrollY;
+  let cachedTrackTop = 0;
+  let cachedTrackHeight = 1;
+  let cachedSponsorsTop = 999999;
+  let cachedTeamTop = 999999;
+  let cachedContactTop = 999999;
+
+  function measureLayout() {
     const vh = window.innerHeight;
-    if (!track) return;
-    const trackRect = track.getBoundingClientRect();
-    const trackTop = rawScrollY + trackRect.top;
-    const trackHeight = track.offsetHeight - vh;
-    targetP = Math.max(0, Math.min(1.0, (rawScrollY - trackTop) / Math.max(1, trackHeight)));
+    const scrollY = window.scrollY || window.pageYOffset || 0;
+    if (track) {
+      const rect = track.getBoundingClientRect();
+      cachedTrackTop = scrollY + rect.top;
+      cachedTrackHeight = Math.max(1, track.offsetHeight - vh);
+    }
+    const sEl = $('#sponsors'), tEl = $('#team'), cEl = $('#contact');
+    if (sEl) cachedSponsorsTop = scrollY + sEl.getBoundingClientRect().top;
+    if (tEl) cachedTeamTop = scrollY + tEl.getBoundingClientRect().top;
+    if (cEl) cachedContactTop = scrollY + cEl.getBoundingClientRect().top;
+  }
+  measureLayout();
+  window.addEventListener('resize', measureLayout);
+  window.addEventListener('orientationchange', measureLayout);
+
+  function onScroll() {
+    rawScrollY = window.scrollY || window.pageYOffset || 0;
+    targetP = Math.max(0, Math.min(1.0, (rawScrollY - cachedTrackTop) / cachedTrackHeight));
     if (isFirstScroll) {
       currentP = targetP;
       isFirstScroll = false;
@@ -2850,7 +3213,6 @@ function initScrollEngine() {
       const clampedP = Math.min(1.0, Math.max(0.0, p));
 
       if (elHeroOverlay) {
-        elHeroOverlay.style.display = 'flex';
         elHeroOverlay.style.visibility = 'visible';
         const scale = 1.0 + Math.pow(clampedP, 1.35) * 1.15;
         const opacity = Math.max(0, 1.0 - Math.pow(clampedP, 1.4));
@@ -2867,7 +3229,6 @@ function initScrollEngine() {
       targetCamX = 0;
     } else {
       if (elHeroOverlay) {
-        elHeroOverlay.style.display = 'none';
         elHeroOverlay.style.visibility = 'hidden';
         elHeroOverlay.style.opacity = '0';
         elHeroOverlay.style.pointerEvents = 'none';
@@ -3221,7 +3582,7 @@ function renderSponsorsAndTeam() {
           '<figure class="member-card">' +
             '<a href="' + (m.linkedin || '#') + '" target="_blank" rel="noopener noreferrer" class="member-link" aria-label="Visit ' + m.name + ' LinkedIn Profile">' +
               '<div class="member-ph">' +
-                '<div class="photo-li-tag" title="Open LinkedIn Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.2V10.9H6.46M7.83 6.22a1.64 1.64 0 1 0 0 3.28 1.64 1.64 0 0 0 0-3.28Z"/></svg></div>' +
+                '' +
                 (m.photo ? '<img src="' + m.photo + '" alt="' + m.name + '" class="member-real-photo" style="width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:inherit;display:block;" />' :
                 '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" class="member-avatar-svg"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>') +
                 '<div class="member-overlay">' +

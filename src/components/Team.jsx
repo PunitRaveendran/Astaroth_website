@@ -12,7 +12,7 @@ const TEAM_GROUPS = [
     category: 'Electrical & Telemetry Engineering',
     members: [
       { name: 'Nishaanth S.', role: 'Electrical Head', photo: '/team/nishaanth.jpg', linkedin: 'https://www.linkedin.com/in/nishaanth-sundararajan-a20827334/' },
-      { name: 'Punit Raveendran', role: 'Electrical / Media Team', photo: '/team/punit.jpg', linkedin: 'https://www.linkedin.com/in/punit-raveendran-805407321/' },
+      { name: 'Punit Raveendran', role: 'Electrical / Webmaster', photo: '/team/punit.jpg', linkedin: 'https://www.linkedin.com/in/punit-raveendran-805407321/' },
       { name: 'Rishabh K.', role: 'Electrical Member', photo: '/team/rishabh.jpg', linkedin: 'https://www.linkedin.com/in/rishabh-k-490009356/' },
       { name: 'Gauri Roy', role: 'Electrical Member', photo: '/team/gauri.jpg', linkedin: 'https://www.linkedin.com/in/gauri-roy-4b212b42b/' },
       { name: 'Harini Karthikeyan', role: 'Electrical Member', photo: '/team/harini.jpg', linkedin: 'https://www.linkedin.com/in/harini-karthikeyan-b53b76206/' }

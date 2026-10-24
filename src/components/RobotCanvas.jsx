@@ -258,15 +258,16 @@ function ResponsiveCamera() {
   useFrame(() => {
     const aspect = size.width / Math.max(1, size.height);
     if (aspect < 1.0) {
-      // Mobile portrait view: Frame the combat machine prominently and boldly in the upper half
-      const targetZ = Math.min(1680, Math.max(1200, 560 / (0.64984 * Math.max(0.35, aspect))));
-      const targetY = 250;
-      camera.position.z += (targetZ - camera.position.z) * 0.12;
-      camera.position.y += (targetY - camera.position.y) * 0.12;
-      camera.position.x += (0 - camera.position.x) * 0.12;
-      camera.lookAt(0, 35, 0);
+      // Mobile portrait view: Elevate the machine into the upper half of screen so it NEVER collides with bottom cards
+      // Aiming optical center at (0, -170, 0) elevates the robot center to ~71% viewport height, keeping it 100% clear of bottom cards
+      const targetZ = Math.min(1450, Math.max(1150, 460 / (0.62 * Math.max(0.35, aspect))));
+      const targetY = 320;
+      camera.position.z += (targetZ - camera.position.z) * 0.14;
+      camera.position.y += (targetY - camera.position.y) * 0.14;
+      camera.position.x += (0 - camera.position.x) * 0.14;
+      camera.lookAt(0, -170, 0);
     } else {
-      // Desktop landscape view:
+      // Desktop landscape view: Completely untouched!
       const targetZ = 1080;
       const targetY = 240;
       camera.position.z += (targetZ - camera.position.z) * 0.12;
