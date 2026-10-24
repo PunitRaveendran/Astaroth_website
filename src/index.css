@@ -273,6 +273,7 @@ a {
    Counter-Rotating Rings, Scroll-Linked RPM Telemetry, Capped Embers
    ========================================================================== */
 .hero-portal-overlay {
+  touch-action: pan-y;
   position: absolute;
   inset: 0;
   width: 100%;
@@ -2069,7 +2070,7 @@ footer img {
    ========================================================================== */
 @media (max-width: 768px) {
   html, body, #root {
-    overflow-x: hidden !important;
+    overflow-x: clip !important;
     width: 100% !important;
     max-width: 100vw !important;
   }
@@ -2186,6 +2187,13 @@ footer img {
     margin: 0 auto !important;
     box-sizing: border-box !important;
     text-align: center !important;
+  }
+  /* Odd-count member centering: Centers 5th person or single driver in 2-column mobile layout */
+  .members-grid .member-card:last-child:nth-child(odd) {
+    grid-column: 1 / -1 !important;
+    justify-self: center !important;
+    max-width: 155px !important;
+    margin-inline: auto !important;
   }
   .member-link {
     width: 100% !important;

@@ -258,13 +258,13 @@ function ResponsiveCamera() {
   useFrame(() => {
     const aspect = size.width / Math.max(1, size.height);
     if (aspect < 1.0) {
-      // Mobile portrait view: frame the 550mm exploded robot with comfortable margin
-      const targetZ = Math.min(2650, Math.max(1300, 850 / (0.64984 * aspect)));
-      const targetY = 320;
+      // Mobile portrait view: Frame the combat machine prominently and boldly in the upper half
+      const targetZ = Math.min(1680, Math.max(1200, 560 / (0.64984 * Math.max(0.35, aspect))));
+      const targetY = 250;
       camera.position.z += (targetZ - camera.position.z) * 0.12;
       camera.position.y += (targetY - camera.position.y) * 0.12;
       camera.position.x += (0 - camera.position.x) * 0.12;
-      camera.lookAt(0, 50, 0);
+      camera.lookAt(0, 35, 0);
     } else {
       // Desktop landscape view:
       const targetZ = 1080;

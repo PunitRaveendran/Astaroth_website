@@ -22,7 +22,7 @@ export default function App() {
   });
 
   useEffect(() => {
-    let rawScrollY = window.scrollY;
+    let rawScrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
     let targetP = 0;
     let currentP = 0;
     let isFirstScroll = true;
@@ -113,25 +113,25 @@ export default function App() {
         }
       }
 
-      // 3. Phase 0: Hero Fly-Through (0.00 to 0.18)
-      const heroThreshold = 0.18;
+      // 3. Phase 0: Hero Fly-Through (Snappy on mobile, cinematic on desktop)
+      const heroThreshold = isDesktop ? 0.18 : 0.09;
       if (progress <= heroThreshold) {
-        const p = progress / (heroThreshold * 0.88);
+        const p = progress / (heroThreshold * 0.85);
         const clampedP = Math.min(1.0, Math.max(0.0, p));
         const scale = 1.0 + Math.pow(clampedP, 1.35) * 1.15;
-        const opacity = Math.max(0, 1.0 - Math.pow(clampedP, 1.4));
+        const opacity = Math.max(0, 1.0 - Math.pow(clampedP, 1.3));
 
         if (elHeroOverlay) {
           elHeroOverlay.style.display = 'flex';
           elHeroOverlay.style.visibility = 'visible';
           elHeroOverlay.style.opacity = opacity.toFixed(3);
-          elHeroOverlay.style.pointerEvents = clampedP > 0.75 ? 'none' : 'auto';
+          elHeroOverlay.style.pointerEvents = clampedP > 0.65 ? 'none' : 'auto';
         }
         if (elHeroDisc) {
           elHeroDisc.style.transform = `scale(${scale.toFixed(3)})`;
         }
         if (elHeroCue) {
-          elHeroCue.style.opacity = Math.max(0, 1.0 - clampedP * 3.5).toFixed(2);
+          elHeroCue.style.opacity = Math.max(0, 1.0 - clampedP * 3.0).toFixed(2);
         }
 
         if (elRobotHud) elRobotHud.style.opacity = '0';
@@ -141,7 +141,7 @@ export default function App() {
         robotStateRef.current.targetExplode = 0.0;
         robotStateRef.current.targetCamX = 0;
       } else {
-        // Past Hero: Hide overlay completely to save GPU & CPU cycles
+        // Past Hero: Hide overlay completely to reveal 3D machine
         if (elHeroOverlay) {
           elHeroOverlay.style.display = 'none';
           elHeroOverlay.style.visibility = 'hidden';
@@ -150,11 +150,11 @@ export default function App() {
         }
         if (elRobotHud) elRobotHud.style.opacity = '1';
 
-        // Extended Narrative Scroll Pacing:
-        // Stage 1 (0.18 - 0.48): Generous 30% scroll window to process assembled machine!
-        // Stage 2 (0.48 - 0.82): CAD exploded view (0.48-0.58 separate, 0.58-0.74 plateau, 0.74-0.82 reassemble)
-        // Stage 3 (0.82 - 1.00): Fully reassembled with Engineering Crew card
-        if (progress < 0.48) {
+        // Responsive Staging Thresholds:
+        const stage1End = isDesktop ? 0.48 : 0.38;
+        const stage2End = isDesktop ? 0.82 : 0.72;
+
+        if (progress < stage1End) {
           // STAGE 1: ASSEMBLED (SPECS)
           if (elCardSpecs) elCardSpecs.classList.add('active');
           if (elCardCrew) elCardCrew.classList.remove('active');
@@ -162,27 +162,29 @@ export default function App() {
           robotStateRef.current.targetCamX = isDesktop ? -235 : 0;
           if (elStageBadge) elStageBadge.innerHTML = '<span class="live-dot"></span> STAGE 1/3: ASSEMBLED (SPECS)';
           if (elExplodeBar) elExplodeBar.style.width = '0%';
-        } else if (progress >= 0.48 && progress < 0.82) {
+        } else if (progress >= stage1End && progress < stage2End) {
           // STAGE 2: SUSTAINED EXPLODED VIEW
           if (elCardSpecs) elCardSpecs.classList.remove('active');
           if (elCardCrew) elCardCrew.classList.remove('active');
           robotStateRef.current.targetCamX = 0;
           if (elStageBadge) elStageBadge.innerHTML = '<span class="live-dot"></span> STAGE 2/3: EXPLODED CAD VIEW';
 
+          const range = stage2End - stage1End;
+          const pNorm = (progress - stage1End) / range;
           let exp = 0;
-          if (progress < 0.58) {
-            exp = (progress - 0.48) / (0.58 - 0.48);
-          } else if (progress >= 0.58 && progress <= 0.74) {
+          if (pNorm < 0.25) {
+            exp = pNorm / 0.25;
+          } else if (pNorm <= 0.75) {
             exp = 1.0;
           } else {
-            exp = 1.0 - (progress - 0.74) / (0.82 - 0.74);
+            exp = 1.0 - (pNorm - 0.75) / 0.25;
           }
           exp = Math.max(0, Math.min(1.0, exp));
           robotStateRef.current.targetExplode = exp;
           if (elExplodeBar) elExplodeBar.style.width = Math.round(exp * 100) + '%';
         } else {
           // STAGE 3: REASSEMBLED (CREW)
-          if (elCardSpecs) elCardSpecs.classList.remove('active');
+          if (elCardSpecs) elCardSpecs.classList.add('active');
           if (elCardCrew) elCardCrew.classList.add('active');
           robotStateRef.current.targetExplode = 0.0;
           robotStateRef.current.targetCamX = isDesktop ? -235 : 0;
@@ -223,7 +225,7 @@ export default function App() {
     }
 
     const onScroll = () => {
-      rawScrollY = window.scrollY;
+      rawScrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
       const vh = window.innerHeight;
       const theatre = theatreRef.current;
       if (!theatre) return;
