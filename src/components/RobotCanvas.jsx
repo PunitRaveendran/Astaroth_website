@@ -1,5 +1,5 @@
 import React, { useRef, useMemo, useState } from 'react';
-import { Canvas, useFrame, useLoader } from '@react-three/fiber';
+import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { STLLoader } from 'three-stdlib';
 
@@ -227,6 +227,34 @@ function LawnmowerBot({ stateRef, rotRef }) {
   );
 }
 
+
+function ResponsiveCamera() {
+  const { camera, size } = useThree();
+
+  useFrame(() => {
+    const aspect = size.width / Math.max(1, size.height);
+    if (aspect < 1.0) {
+      // Mobile portrait view: frame the 550mm exploded robot with comfortable margin
+      const targetZ = Math.min(2650, Math.max(1300, 850 / (0.64984 * aspect)));
+      const targetY = 320;
+      camera.position.z += (targetZ - camera.position.z) * 0.12;
+      camera.position.y += (targetY - camera.position.y) * 0.12;
+      camera.position.x += (0 - camera.position.x) * 0.12;
+      camera.lookAt(0, 50, 0);
+    } else {
+      // Desktop landscape view:
+      const targetZ = 1080;
+      const targetY = 240;
+      camera.position.z += (targetZ - camera.position.z) * 0.12;
+      camera.position.y += (targetY - camera.position.y) * 0.12;
+      camera.lookAt(0, 0, 0);
+    }
+    camera.updateProjectionMatrix();
+  });
+
+  return null;
+}
+
 function RobotScene({ stateRef, rotRef }) {
   const currentSceneXRef = useRef(0);
   const sceneGroupRef = useRef();
@@ -286,9 +314,12 @@ function RobotCanvas({ stateRef }) {
     rotRef.current.lastX = e.clientX;
     rotRef.current.lastY = e.clientY;
     setIsDraggingState(true);
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId);
-    } catch (err) {}
+    // Only capture pointer on mouse/pen to allow mobile touch to scroll vertically
+    if (e.pointerType !== 'touch') {
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch (err) {}
+    }
   };
 
   const handlePointerMove = (e) => {
@@ -297,16 +328,22 @@ function RobotCanvas({ stateRef }) {
     const dy = e.clientY - rotRef.current.lastY;
     rotRef.current.lastX = e.clientX;
     rotRef.current.lastY = e.clientY;
+    // Horizontal swipe orbits the robot
     rotRef.current.targetRotY += dx * 0.008;
-    rotRef.current.targetRotX = Math.max(-0.55, Math.min(0.65, rotRef.current.targetRotX + dy * 0.008));
+    // Tilt pitch angle only on mouse
+    if (e.pointerType !== 'touch') {
+      rotRef.current.targetRotX = Math.max(-0.55, Math.min(0.65, rotRef.current.targetRotX + dy * 0.008));
+    }
   };
 
   const handlePointerUp = (e) => {
     rotRef.current.isDragging = false;
     setIsDraggingState(false);
-    try {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    } catch (err) {}
+    if (e.pointerType !== 'touch') {
+      try {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      } catch (err) {}
+    }
   };
 
   return (
@@ -322,7 +359,7 @@ function RobotCanvas({ stateRef }) {
         height: '100%',
         pointerEvents: 'auto',
         cursor: isDraggingState ? 'grabbing' : 'grab',
-        touchAction: 'none'
+        touchAction: 'pan-y'
       }}
     >
       <Canvas
@@ -335,6 +372,7 @@ function RobotCanvas({ stateRef }) {
         dpr={dpr}
       >
         {/* Authentic Studio Lighting tailored for rich Iron Man candy crimson */}
+        <ResponsiveCamera />
         <hemisphereLight skyColor={0xffeedd} groundColor={0x200004} intensity={0.70} />
         <ambientLight color={0xffe6e6} intensity={0.45} />
 
