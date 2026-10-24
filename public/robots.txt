@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://astarothrobotics.com/sitemap.xml
+Sitemap: https://astaroth-website.vercel.app/sitemap.xml
