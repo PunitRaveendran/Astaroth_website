@@ -20,6 +20,15 @@ export default function App() {
   });
 
   useEffect(() => {
+    // Automatically clear active focus when switching back from external tabs (LinkedIn)
+    const handleFocus = () => {
+      if (document.activeElement && document.activeElement !== document.body) {
+        document.activeElement.blur();
+      }
+    };
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleFocus);
+
     let rawScrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
     let targetP = 0;
     let currentP = 0;
@@ -268,7 +277,9 @@ export default function App() {
     window.addEventListener('orientationchange', handleResize);
     onScroll();
 
-    return () => {
+    window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+      return () => {
       clearTimeout(measureTimer);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', handleResize);
@@ -325,7 +336,7 @@ export default function App() {
               <dl className="specs-grid-compact">
                 <div className="spec-row"><dt>COMBAT CLASS</dt><dd>Featherweight (15 kg / 33 lbs)</dd></div>
                 <div className="spec-row"><dt>CHASSIS ARCHITECTURE</dt><dd>CNC Billet 6061-T6 Unibody Tub</dd></div>
-                <div className="spec-row"><dt>TOP SPEED / DRIVE</dt><dd>24 km/h Dual Brushless 2WD</dd></div>
+                <div className="spec-row"><dt>DRIVE</dt><dd>2-Wheel Drive</dd></div>
               </dl>
               <div className="card-footer">
                 <span className="scroll-indicator-pill">&darr; KEEP SCROLLING FOR EXPLODED CAD VIEW</span>
@@ -343,7 +354,7 @@ export default function App() {
                 We are a powerhouse crew of <b>10 inter-departmental 3rd-year engineering students from Amrita Vishwa Vidyapeetham</b> united by our passion for heavy-impact combat robotics.
               </p>
               <p className="card-desc" style={{ fontSize: '0.86rem', lineHeight: 1.55, color: 'var(--bone-dim)', marginTop: '8px' }}>
-                Forged by an obsession for competitive robotics, we engineer, machine, and battle-test our featherweight machines to dominate the National Robowars arenas.
+                Forged by an obsession for competitive robotics, we engineer, machine, and battle-test our featherweight battlebots to dominate the National Robowars arenas.
               </p>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', margin: '14px 0' }}>
                 <span style={{ fontFamily: 'var(--f-mono)', fontSize: '0.68rem', padding: '4px 8px', borderRadius: '3px', background: 'rgba(239,51,64,0.12)', border: '1px solid rgba(239,51,64,0.3)', color: 'var(--laser)' }}>Amrita Vishwa Vidyapeetham</span>

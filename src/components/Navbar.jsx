@@ -22,7 +22,7 @@ export default function Navbar({ activeSection = 'hero', scrollPct = 0 }) {
         </button>
         <ul className={'nav-links ' + (menuOpen ? 'open' : '')} id="navlist">
           <li><a href="#hero" className={activeSection === 'hero' ? 'active' : ''} onClick={() => setMenuOpen(false)}>Overview</a></li>
-          <li><a href="#robot" className={activeSection === 'robot' ? 'active' : ''} onClick={() => setMenuOpen(false)}>The Machine</a></li>
+          <li><a href="#robot" className={activeSection === 'robot' ? 'active' : ''} onClick={() => setMenuOpen(false)}>The Battlebot</a></li>
           <li><a href="#sponsors" className={activeSection === 'sponsors' ? 'active' : ''} onClick={() => setMenuOpen(false)}>Sponsors</a></li>
           <li><a href="#team" className={activeSection === 'team' ? 'active' : ''} onClick={() => setMenuOpen(false)}>The Team</a></li>
           <li><a href="#contact" className={activeSection === 'contact' ? 'active' : ''} onClick={() => setMenuOpen(false)}>Contact</a></li>

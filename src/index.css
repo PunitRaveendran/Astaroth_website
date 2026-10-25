@@ -1678,10 +1678,16 @@ a {
   transform: translateY(8px);
   border-radius: inherit;
 }
-.member-card:hover .member-overlay,
-.member-card:focus-within .member-overlay {
-  opacity: 1;
-  transform: translateY(0);
+@media (hover: hover) and (pointer: fine) {
+  .member-card:hover .member-overlay {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.member-link:focus,
+.member-link:focus-visible,
+.member-card:focus-within {
+  outline: none !important;
 }
 .member-li-pill {
   display: inline-flex;

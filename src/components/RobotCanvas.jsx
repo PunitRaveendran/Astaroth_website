@@ -100,7 +100,7 @@ function LawnmowerBot({ stateRef, rotRef }) {
   // Saturated candy/crimson hot-rod red body (zero brown), metallic 24K gold drum, matte black rubber wheels
   const materials = useMemo(() => {
     const matChassis = new THREE.MeshStandardMaterial({
-      color: 0x9e111b, // Saturated Iron Man Hot-Rod Crimson Red
+      color: 0x991800, // Saturated Iron Man Hot-Rod Crimson Red
       metalness: 0.35,
       roughness: 0.40,
       emissive: 0x220205, // Rich crimson ambient fill to avoid muddy dark brown in shadows
@@ -108,7 +108,7 @@ function LawnmowerBot({ stateRef, rotRef }) {
     });
 
     const matTopDeck = new THREE.MeshStandardMaterial({
-      color: 0x960f18, // Matching Iron Man Crimson Red
+      color: 0x851400, // Matching Iron Man Crimson Red
       metalness: 0.35,
       roughness: 0.40,
       emissive: 0x200205,
