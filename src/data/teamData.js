@@ -10,7 +10,7 @@ export const TEAM_ROSTER = [
     category: 'Electrical & Telemetry Systems',
     members: [
       { name: 'Nishaanth S.', callsign: 'VOLT', role: 'Electrical Head', sub: 'High-Current ESC & Power Distribution', linkedin: 'https://www.linkedin.com/in/nishaanth-sundararajan-a20827334/' },
-      { name: 'Punit Raveendran', callsign: 'SPECTRE', role: 'Electrical Team & Webmaster', sub: 'Sensor Telemetry & Embedded Comms', linkedin: 'https://www.linkedin.com/in/punit-raveendran-805407321/' },
+      { name: 'Punit Raveendran', callsign: 'SPECTRE', role: 'Electrical Member & Webmaster', sub: 'Sensor Telemetry & Embedded Comms', linkedin: 'https://www.linkedin.com/in/punit-raveendran-805407321/' },
       { name: 'Rishabh K.', callsign: 'CIRCUIT', role: 'Electrical Engineer', sub: 'Battery Vault & Cell Balancing', linkedin: 'https://www.linkedin.com/in/rishabh-k-490009356/' },
       { name: 'Gauri Roy', callsign: 'AMP', role: 'Electrical Engineer', sub: 'Powertrain Harness & Isolation', linkedin: 'https://www.linkedin.com/in/gauri-roy-4b212b42b/' },
       { name: 'Harini Karthikeyan', callsign: 'FLUX', role: 'Electrical Engineer', sub: 'Telemetry Radio & Safety Interlocks', linkedin: 'https://www.linkedin.com/in/harini-karthikeyan-b53b76206/' }
